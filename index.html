@@ -1,0 +1,42 @@
+<!doctype html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+		<title>Javascript Calendar Light</title>
+		<script src="calendar.js"></script>
+		<link href="calendar.css" rel="stylesheet">
+		<style>
+			body {margin:0; padding:0;font-family:arial;}
+			#calendar{height:800px;position:relative;height:100vh;}
+			
+		</style>
+	</head>
+	<body>
+			
+			
+			<div id="calendar">
+			
+			</div>
+			
+			
+			
+	<script>
+	
+	/*
+	* To add Events use JSON similar to this structure. 
+	* You can customize the event links in the JS file on line 80
+	*/
+	
+	
+	var events = [
+		{"id":"1","title":"Remember to do this and anotehr","start":"2022-09-02T12:00:00","color":"orange"},
+		{"id":"2","title":"Another thing to do this. are you sure? ","start":"2022-09-11","color":"orange"},
+		{"id":"3","title":"Don not forget to do this","start":"2022-09-11","color":"yellow"}
+	];
+
+	calendar.loadEvents(events);
+
+ 
+	</script>
+    </body>
+</html>
