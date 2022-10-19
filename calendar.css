@@ -1,7 +1,7 @@
 table.calendar {table-layout:fixed;padding-top:80px;top:0;height:100%;}
 table.calendar, table.calendar-head {width:100%;}
 table.calendar-head a {cursor:pointer;}
-table.calendar-head th {text-align:left; font-weight:normal;}
+table.calendar-head th {text-align:left; font-weight:normal;padding:0 20px;}
 table.calendar-head h1 {font-weight:normal;}
 table.calendar-head th.links {text-align:right;}
 table.calendar-head  {
@@ -10,10 +10,12 @@ table.calendar-head  {
   -ms-user-select: none;      
   user-select: none;
   position:absolute;
+  table-layout:fixed;
 }
 
 table.calendar th {
 	padding-bottom:5px; 
+	padding-right:5px;
 	text-align:right; 
 	font-weight:normal;
 }

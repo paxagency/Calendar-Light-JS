@@ -33,13 +33,13 @@ var calendar = {
    	 calendar.render();
   },
   loadEvents: function (json) {
-  	calendar.events = formatJson(json);
+  	calendar.events = this.formatJson(json);
   	calendar.render();
   },
   render: function() {
     var html = '';
     html += '<table cellpadding="0" cellspacing="0" class="calendar-head"><tr>';
-    html += '<th colspan="3"><h1>' + getMonthName(calendar.selectedMonth) + ' ' + calendar.selectedYear + '</h1></th>';
+    html += '<th colspan="3"><h1>' + this.getMonthName(calendar.selectedMonth) + ' ' + calendar.selectedYear + '</h1></th>';
     html += '<th colspan="2" ><button onclick="calendar.setMode(\'month\')">Month</button> <button onclick="calendar.setMode(\'week\')">Week</button></th>';
     html += '<th colspan="2" class="links"><button id="lastMonth">&larr;</button> <button id="todayMonth">Today</button> <button id="nextMonth">&rarr;</button></th>';
     html += '</tr></table>';
@@ -51,9 +51,9 @@ var calendar = {
     }
 	html += '</tr></thead><tbody>';
     
-    var daysInMonth = getDaysInMonth(calendar.selectedYear, calendar.selectedMonth);
-    var prevDaysInMonth = getDaysInMonth(calendar.lastYear, calendar.lastMonth);
-    var startDay = getFirstDayofMonth(calendar.selectedYear, calendar.selectedMonth);
+    var daysInMonth = this.getDaysInMonth(calendar.selectedYear, calendar.selectedMonth);
+    var prevDaysInMonth = this.getDaysInMonth(calendar.lastYear, calendar.lastMonth);
+    var startDay = this.getFirstDayofMonth(calendar.selectedYear, calendar.selectedMonth);
     var numRows = 0;
     var printDate = 1;
     var noPrintDays = 0;
@@ -72,7 +72,7 @@ var calendar = {
       html += '<tr>';
       // create calendar days
       for (var f = 0; f < 7; f++) {
-      	var formatted = formatDateString(printDate,calendar.selectedMonth,calendar.selectedYear);
+      	var formatted = this.formatDateString(printDate,calendar.selectedMonth,calendar.selectedYear);
       	weekend =(f===0 || f===6) ? ' weekend ' : '';
         if ((printDate == calendar.thisDay)
         && (calendar.selectedYear == calendar.thisYear)
@@ -100,7 +100,7 @@ var calendar = {
             }
           } else {
  
-          		var formatted = formatDateString(printNextDays,calendar.monthNext,calendar.yearNext);
+          		var formatted = this.formatDateString(printNextDays,calendar.monthNext,calendar.yearNext);
       			
           		html += '<td class="disable '+weekend+'"><span>';
 				html += printNextDays;
@@ -117,7 +117,7 @@ var calendar = {
 			}
           printDate++;
         } else {
-        	var formatted = formatDateString(prevDaysInMonth-noPrintDays+1,calendar.lastMonth,calendar.lastYear);
+        	var formatted = this.formatDateString(prevDaysInMonth-noPrintDays+1,calendar.lastMonth,calendar.lastYear);
       			
         	 	html += '<td class="disable '+weekend+'"><span>';
         		html += (prevDaysInMonth-noPrintDays+1);
@@ -252,7 +252,113 @@ var calendar = {
   	calendar.selectedRow = calendar.todayRow;
   	calendar.todayMonth();
   	calendarDiv.getElementsByTagName('table')[1].rows[calendar.selectedRow+1].className = 'view';
-  }
+  },
+  /* MISC FUNCTIONS */
+
+	formatDate: function (date,sep) {
+	  sep = (sep)? sep : "-";
+	  var d = date.getDate();
+	  var m = date.getMonth();
+	  var y = date.getFullYear();
+	  m++;
+	  if (m < 10) m = '0' + m.toString();
+	  if (d < 10) d = '0' + d.toString();
+	  return y.toString()+sep+m.toString()+sep+d.toString();
+	},
+	formatDateString:function (d,m,y,sep) {
+	  sep = (sep)? sep : "-";
+	  m++;
+	  if (m < 10) m = '0' + m.toString();
+	  if (d < 10) d = '0' + d.toString();
+	  return y.toString()+sep+m.toString()+sep+d.toString();
+	},
+	formatTime:function (date,am) {
+	  var h = date.getHours();
+	  var m = date.getMinutes();
+	  var end = (h>11) ? "pm" : "am";
+	  if(h > 12) h = h-12;
+	  //if (h < 10) h = '0' + h.toString();
+	  if (m < 10) m = '0' + m.toString();
+	  m = (m=="00") ? "" : ":"+m;
+	  return (am) ? h+m+end : h+m;
+	},
+	getMonthName:function (month) {
+	  var monthNames = new Array('January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December');
+	  return monthNames[month];
+	},
+
+	getDaysInMonth:function (year, month) {
+	  return 32 - new Date(year, month, 32).getDate();
+	},
+
+	getFirstDayofMonth:function (year, month) {
+	  var day;
+	  day = new Date(year, month, 0).getDay();
+	  return day;
+	},
+
+	formatJson:function (jsn) {
+		 var events = calendar.data = jsn;
+		 var result = new Object;
+	 
+		 for (var i=0; i < events.length; i++) {
+		
+			if(events[i].end) {
+				//.replace(/T.+/, '')
+				 var hasTime = events[i].start.indexOf("T")>=0 ? true : false;
+				 if(!hasTime) events[i].start+="T08:00:00";
+				 var start =  new Date( events[i].start);
+				 var hasTime2 = events[i].end.indexOf("T")>=0 ? true : false;
+				 if(!hasTime2) events[i].end+="T08:00:00";
+				 var end =  new Date( events[i].end);
+		
+				 while(start <= end){
+				
+					var d = this.formatDate(start,""); 
+					var event = new Object;
+					event.title = events[i].title;
+					event.id = events[i].id;
+					event.color = events[i].color;
+					event.multi= 'multi';
+					event.index = i;
+					event.stamp = start;
+					event.date= this.formatDate(start,"-"); 
+					event.time= (hasTime) ? this.formatTime(start,1) : 0; 
+					event.dateEnd= this.formatDate(end,"-"); 
+					event.timeEnd= (hasTime2) ? this.formatTime(end,1) : 0; 
+					if(!result[d]) result[d] = new Array;
+					result[d].push(event);
+					var newDate = start.setDate(start.getDate() + 1);
+					start = new Date(newDate);
+				}
+			} else {
+				var hasTime = events[i].start.indexOf("T")>=0 ? true : false;
+				 if(!hasTime) events[i].start+="T08:00:00";
+			
+				var start =  new Date( events[i].start);
+				var d = this.formatDate(start); 
+				var event = new Object;
+					event.title = events[i].title;
+					event.id = events[i].id;
+					event.color = events[i].color;
+					event.multi= '';
+					event.index = i;
+					event.stamp = start;
+					event.date= this.formatDate(start,"-"); 
+					event.time= (hasTime) ? this.formatTime(start,1) : 0; 
+					event.dateEnd= 0;
+					event.timeEnd=0;
+				if(!result[d]) result[d] = new Array;
+				result[d].push(event);
+			}
+		 }
+		 for (var k in result) {
+			 if (result.hasOwnProperty(k)) {
+				result[k] = result[k].sort((a, b) => a.stamp - b.stamp)
+			 }
+		 };
+		 return result;
+	}
 }
 // Add calendar event that has wide browser support
 if (typeof window.addEventListener != "undefined")
@@ -271,110 +377,5 @@ else {
   window.onload = calendar.init;
 }
 
-/* MISC FUNCTIONS */
 
-function formatDate(date,sep) {
-  sep = (sep)? sep : "-";
-  var d = date.getDate();
-  var m = date.getMonth();
-  var y = date.getFullYear();
-  m++;
-  if (m < 10) m = '0' + m.toString();
-  if (d < 10) d = '0' + d.toString();
-  return y.toString()+sep+m.toString()+sep+d.toString();
-}
-function formatDateString(d,m,y,sep) {
-  sep = (sep)? sep : "-";
-  m++;
-  if (m < 10) m = '0' + m.toString();
-  if (d < 10) d = '0' + d.toString();
-  return y.toString()+sep+m.toString()+sep+d.toString();
-}
-function formatTime(date,am) {
-  var h = date.getHours();
-  var m = date.getMinutes();
-  var end = (h>11) ? "pm" : "am";
-  if(h > 12) h = h-12;
-  //if (h < 10) h = '0' + h.toString();
-  if (m < 10) m = '0' + m.toString();
-  m = (m=="00") ? "" : ":"+m;
-  return (am) ? h+m+end : h+m;
-}
-function getMonthName(month) {
-  var monthNames = new Array('January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December');
-  return monthNames[month];
-}
-
-function getDaysInMonth(year, month) {
-  return 32 - new Date(year, month, 32).getDate();
-}
-
-function getFirstDayofMonth(year, month) {
-  var day;
-  day = new Date(year, month, 0).getDay();
-  return day;
-}
-
-function formatJson(jsn) {
-	 var events = calendar.data = jsn;
-	 var result = new Object;
-	 
-	 for (var i=0; i < events.length; i++) {
-	 	
-		if(events[i].end) {
-			//.replace(/T.+/, '')
-			 var hasTime = events[i].start.indexOf("T")>=0 ? true : false;
-			 if(!hasTime) events[i].start+="T08:00:00";
-			 var start =  new Date( events[i].start);
-			 var hasTime2 = events[i].end.indexOf("T")>=0 ? true : false;
-			 if(!hasTime2) events[i].end+="T08:00:00";
-   			 var end =  new Date( events[i].end);
-   		
-			 while(start <= end){
-			 	
-				var d = formatDate(start,""); 
-			   	var event = new Object;
-				event.title = events[i].title;
-				event.id = events[i].id;
-				event.color = events[i].color;
-				event.multi= 'multi';
-				event.index = i;
-				event.stamp = start;
-				event.date= formatDate(start,"-"); 
-				event.time= (hasTime) ? formatTime(start,1) : 0; 
-				event.dateEnd= formatDate(end,"-"); 
-				event.timeEnd= (hasTime2) ? formatTime(end,1) : 0; 
-				if(!result[d]) result[d] = new Array;
-				result[d].push(event);
-			   	var newDate = start.setDate(start.getDate() + 1);
-			   	start = new Date(newDate);
-			}
-		} else {
-			var hasTime = events[i].start.indexOf("T")>=0 ? true : false;
-			 if(!hasTime) events[i].start+="T08:00:00";
-			
-			var start =  new Date( events[i].start);
-   			var d = formatDate(start); 
-			var event = new Object;
-				event.title = events[i].title;
-				event.id = events[i].id;
-				event.color = events[i].color;
-				event.multi= '';
-				event.index = i;
-				event.stamp = start;
-				event.date= formatDate(start,"-"); 
-				event.time= (hasTime) ? formatTime(start,1) : 0; 
-				event.dateEnd= 0;
-				event.timeEnd=0;
-			if(!result[d]) result[d] = new Array;
-			result[d].push(event);
-		}
-	 }
-	 for (var k in result) {
-	 	 if (result.hasOwnProperty(k)) {
-	 	 	result[k] = result[k].sort((a, b) => a.stamp - b.stamp)
-	 	 }
-	 };
-	 return result;
-}
 
